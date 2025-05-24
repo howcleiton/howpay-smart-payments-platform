@@ -14,7 +14,7 @@ const Charges = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold bg-howpay-gradient bg-clip-text text-transparent">Cobranças</h1>
+          <h1 className="text-3xl font-bold text-black">Cobranças</h1>
           <p className="text-gray-600">Gerencie todas as suas cobranças</p>
         </div>
         <Button 

@@ -7,7 +7,7 @@ const Header = () => {
     <header className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold bg-howpay-gradient bg-clip-text text-transparent">Dashboard</h1>
+          <h1 className="text-2xl font-bold text-black">Dashboard</h1>
           <p className="text-gray-600">Gerencie seus pagamentos e cobranças</p>
         </div>
         
