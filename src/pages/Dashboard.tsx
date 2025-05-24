@@ -11,10 +11,10 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-3xl font-bold bg-howpay-gradient bg-clip-text text-transparent">Dashboard</h1>
           <p className="text-gray-600">Visão geral dos seus pagamentos</p>
         </div>
-        <Button className="bg-primary hover:bg-primary-600 text-white">
+        <Button className="bg-howpay-gradient hover:bg-howpay-gradient-reverse text-white shadow-lg">
           + Nova Cobrança
         </Button>
       </div>

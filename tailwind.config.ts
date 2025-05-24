@@ -26,17 +26,46 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#2363eb',
+					DEFAULT: '#FF6B35',
 					foreground: '#ffffff',
-					50: '#eff6ff',
-					100: '#dbeafe',
-					500: '#2363eb',
-					600: '#1d4ed8',
-					700: '#1e40af'
+					50: '#FFF4F1',
+					100: '#FFE8E1',
+					200: '#FFD1C2',
+					300: '#FFB19A',
+					400: '#FF8A65',
+					500: '#FF6B35',
+					600: '#E55722',
+					700: '#CC4A1E',
+					800: '#B8411C',
+					900: '#A63A1A'
 				},
 				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
-					foreground: 'hsl(var(--secondary-foreground))'
+					DEFAULT: '#FFA726',
+					foreground: '#ffffff',
+					50: '#FFF8E1',
+					100: '#FFECB3',
+					200: '#FFE082',
+					300: '#FFD54F',
+					400: '#FFCA28',
+					500: '#FFA726',
+					600: '#FF9800',
+					700: '#F57C00',
+					800: '#EF6C00',
+					900: '#E65100'
+				},
+				accent: {
+					DEFAULT: '#FFD700',
+					foreground: '#1F2937',
+					50: '#FFFDE7',
+					100: '#FFF9C4',
+					200: '#FFF59D',
+					300: '#FFF176',
+					400: '#FFEE58',
+					500: '#FFD700',
+					600: '#FFC107',
+					700: '#FFB300',
+					800: '#FFA000',
+					900: '#FF8F00'
 				},
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
@@ -45,10 +74,6 @@ export default {
 				muted: {
 					DEFAULT: 'hsl(var(--muted))',
 					foreground: 'hsl(var(--muted-foreground))'
-				},
-				accent: {
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
@@ -68,13 +93,13 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				success: '#2ecc71',
-				'success-light': '#d5f4e6',
-				'success-dark': '#27ae60',
-				warning: '#f39c12',
-				'warning-light': '#fdf2e9',
-				error: '#e74c3c',
-				'error-light': '#fadbd8'
+				success: '#4CAF50',
+				'success-light': '#E8F5E8',
+				'success-dark': '#388E3C',
+				warning: '#FFA726',
+				'warning-light': '#FFF8E1',
+				error: '#F44336',
+				'error-light': '#FFEBEE'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -110,6 +135,10 @@ export default {
 			},
 			fontFamily: {
 				'sans': ['Inter', 'ui-sans-serif', 'system-ui']
+			},
+			backgroundImage: {
+				'howpay-gradient': 'linear-gradient(135deg, #FF6B35 0%, #FFA726 50%, #FFD700 100%)',
+				'howpay-gradient-reverse': 'linear-gradient(135deg, #FFD700 0%, #FFA726 50%, #FF6B35 100%)'
 			}
 		}
 	},
