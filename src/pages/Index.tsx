@@ -1,16 +1,25 @@
 
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import LandingHeader from '@/components/LandingHeader';
+import HeroSection from '@/components/HeroSection';
+import HowItWorks from '@/components/HowItWorks';
+import SocialProof from '@/components/SocialProof';
+import Benefits from '@/components/Benefits';
+import FinalCTA from '@/components/FinalCTA';
+import LandingFooter from '@/components/LandingFooter';
 
 const Index = () => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Redirect to login page by default
-    navigate('/login');
-  }, [navigate]);
-
-  return null;
+  return (
+    <div className="min-h-screen bg-white">
+      <LandingHeader />
+      <HeroSection />
+      <SocialProof />
+      <HowItWorks />
+      <Benefits />
+      <FinalCTA />
+      <LandingFooter />
+    </div>
+  );
 };
 
 export default Index;
