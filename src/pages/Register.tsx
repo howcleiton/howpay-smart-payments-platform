@@ -1,4 +1,5 @@
 
+import { supabase } from '@/integrations/supabase/client';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -19,11 +20,28 @@ const Register = () => {
     plan: 'free'
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Register attempt:', formData);
-    navigate('/dashboard');
-  };
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (formData.password !== formData.confirmPassword) {
+    alert("As senhas não coincidem.");
+    return;
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email: formData.email,
+    password: formData.password,
+  });
+
+  if (error) {
+    alert("Erro ao criar conta: " + error.message);
+    return;
+  }
+
+  alert("Conta criada com sucesso! Verifique seu e-mail.");
+  navigate("/login");
+};
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
