@@ -68,3 +68,49 @@ const Settings = () => {
               <Button className="bg-primary hover:bg-primary-600 text-white" disabled>
                 Salvar alterações
               </Button>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Configurações de API</h3>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="api-key">Chave da API</Label>
+                <div className="flex space-x-2">
+                  <Input id="api-key" value="hpay_pk_************" readOnly />
+                  <Button variant="outline">Regenerar</Button>
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="webhook">URL do Webhook</Label>
+                <Input id="webhook" placeholder="https://seusite.com/webhook" />
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        <div>
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Seu Plano</h3>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-success rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white text-2xl">👑</span>
+              </div>
+              <h4 className="font-semibold text-gray-900">Plano Premium</h4>
+              <p className="text-sm text-gray-600 mb-4">Cobranças ilimitadas</p>
+              <p className="text-2xl font-bold text-gray-900 mb-4">R$ 29/mês</p>
+              <Button variant="outline" className="w-full mb-2">
+                Gerenciar assinatura
+              </Button>
+              <Button variant="outline" className="w-full text-red-600 hover:text-red-700">
+                Cancelar plano
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </div>
+    </div> {/* <- ESSA DIV ESTAVA FALTANDO */}
+  );
+};
+
+export default Settings;
