@@ -109,8 +109,9 @@ const Settings = () => {
           </Card>
         </div>
       </div>
-    </div> {/* <- ESSA DIV ESTAVA FALTANDO */}
+    </div>
   );
 };
 
 export default Settings;
+;
