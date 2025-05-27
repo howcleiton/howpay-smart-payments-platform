@@ -1,117 +1,57 @@
-
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulando login
-    console.log('Login attempt:', formData);
-    navigate('/dashboard');
-  };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
+
+    if (error) {
+      setErrorMsg('E-mail ou senha inválidos.');
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 bg-primary rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-2xl">H</span>
-            </div>
-          </div>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            Entre na sua conta
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Acesse o painel do Howpay
-          </p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <form onSubmit={handleLogin} className="bg-white p-8 rounded shadow-md w-full max-w-md space-y-4">
+        <h2 className="text-2xl font-bold text-center">Login</h2>
 
-        <Card className="p-8 shadow-lg">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="mt-1"
-                placeholder="seu@email.com"
-              />
-            </div>
+        {errorMsg && <p className="text-red-500 text-center">{errorMsg}</p>}
 
-            <div>
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="mt-1"
-                placeholder="••••••••"
-              />
-            </div>
+        <input
+          type="email"
+          placeholder="E-mail"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full border px-4 py-2 rounded"
+          required
+        />
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                  Lembrar de mim
-                </label>
-              </div>
+        <input
+          type="password"
+          placeholder="Senha"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full border px-4 py-2 rounded"
+          required
+        />
 
-              <div className="text-sm">
-                <Link to="/forgot-password" className="font-medium text-primary hover:text-primary-600">
-                  Esqueceu a senha?
-                </Link>
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full bg-primary hover:bg-primary-600 text-white"
-            >
-              Entrar
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Não tem uma conta?{' '}
-              <Link to="/register" className="font-medium text-primary hover:text-primary-600">
-                Criar conta gratuita
-              </Link>
-            </p>
-          </div>
-        </Card>
-      </div>
+        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+          Entrar
+        </button>
+      </form>
     </div>
   );
 };
