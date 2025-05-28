@@ -75,8 +75,24 @@ const Charges = () => {
                 <tr key={charge.id} className="border-b">
                   <td className="p-2">{charge.customer_name}</td>
                   <td className="p-2">R$ {charge.amount.toFixed(2)}</td>
-                  <td className="p-2">{charge.status}</td>
-                  <td className="p-2">{charge.method}</td>
+                  <td className="p-2">
+                    {charge.status === 'pending' && (
+                      <span className="bg-yellow-400 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                        Pendente
+                      </span>
+                    )}
+                    {charge.status === 'paid' && (
+                      <span className="bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                        Pago
+                      </span>
+                    )}
+                    {charge.status === 'failed' && (
+                      <span className="bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                        Falhou
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-2 uppercase">{charge.method}</td>
                   <td className="p-2">
                     {new Date(charge.created_at).toLocaleDateString()}
                   </td>
