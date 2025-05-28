@@ -20,7 +20,7 @@ const SocialProof = () => {
               key={index}
               className="flex flex-col items-center text-sm text-gray-500"
             >
-              <div className="w-30 h-30 mb-2"> {/* AUMENTADO AQUI */}
+              <div className="w-20 h-20 mb-2"> {/* AUMENTADO AQUI */}
                 <img
                   src={company.logo}
                   alt={company.name}
