@@ -1,15 +1,9 @@
 import React from 'react';
 
 const companies = [
-  { name: 'TechCorp', icon: '🏢' },
-  { name: 'StartupX', icon: '🚀' },
-  { name: 'Commerce+', icon: '🛒' },
-  { name: 'FinanceIO', icon: '💰' },
-  { name: 'WebStore', icon: '🌐' },
-  { name: 'AppSolutions', icon: '📱' },
   {
     name: 'BeeLog',
-    logo: '/logos/belog.jpeg' // Corrigido para .jpeg
+    logo: '/logos/belog.jpeg' // Certifique-se que o nome está certo
   }
 ];
 
@@ -26,17 +20,13 @@ const SocialProof = () => {
               key={index}
               className="flex flex-col items-center text-sm text-gray-500"
             >
-              {company.icon ? (
-                <span className="text-4xl mb-2">{company.icon}</span>
-              ) : (
-                <div className="w-10 h-10 mb-2">
-                  <img
-                    src={company.logo}
-                    alt={company.name}
-                    className="w-full h-full object-contain rounded"
-                  />
-                </div>
-              )}
+              <div className="w-10 h-10 mb-2">
+                <img
+                  src={company.logo}
+                  alt={company.name}
+                  className="w-full h-full object-contain rounded"
+                />
+              </div>
               {company.name}
             </div>
           ))}
