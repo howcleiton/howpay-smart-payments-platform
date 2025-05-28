@@ -1,5 +1,3 @@
-// src/pages/ForgotPassword.tsx
-
 import React, { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -11,7 +9,7 @@ const ForgotPassword = () => {
 
   const handleReset = async () => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: "https://seusite.com/reset-password", // substitua pela URL correta do seu projeto
+      redirectTo: "https://voluble-biscochitos-33ea9c.netlify.app/reset-password",
     });
 
     if (error) {
