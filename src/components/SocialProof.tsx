@@ -3,7 +3,7 @@ import React from 'react';
 const companies = [
   {
     name: 'BeeLog',
-    logo: '/logos/belog.jpeg' // Certifique-se que o nome está certo
+    logo: '/logos/belog.jpeg'
   }
 ];
 
@@ -20,14 +20,14 @@ const SocialProof = () => {
               key={index}
               className="flex flex-col items-center text-sm text-gray-500"
             >
-              <div className="w-10 h-10 mb-2">
+              <div className="w-30 h-30 mb-2"> {/* AUMENTADO AQUI */}
                 <img
                   src={company.logo}
                   alt={company.name}
                   className="w-full h-full object-contain rounded"
                 />
               </div>
-              {company.name}
+              <span className="text-base font-medium">{company.name}</span>
             </div>
           ))}
         </div>
