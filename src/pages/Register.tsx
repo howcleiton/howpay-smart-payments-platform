@@ -47,6 +47,7 @@ const Register = () => {
       {
         id: user.id,
         full_name: formData.fullName,
+        email: formData.email,
         document: formData.document,
         company_name: formData.companyName,
         plan: formData.plan,
