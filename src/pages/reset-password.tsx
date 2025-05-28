@@ -1,30 +1,39 @@
-import React, { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import React, { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
-  const [params] = useSearchParams();
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    // Importante: atualiza a sessão do usuário vinda do link de e-mail
+    supabase.auth.refreshSession().catch((err) => {
+      console.error("Erro ao restaurar sessão:", err.message);
+    });
+  }, []);
 
   const handleReset = async () => {
+    setError("");
+    setSuccess("");
+
     if (newPassword !== confirmPassword) {
-      setError('As senhas não coincidem.');
+      setError("As senhas não coincidem.");
       return;
     }
 
     const { error } = await supabase.auth.updateUser({ password: newPassword });
 
     if (error) {
-      setError('Erro ao redefinir senha: ' + error.message);
+      setError("Erro ao redefinir senha: " + error.message);
     } else {
-      setSuccess('Senha redefinida com sucesso!');
-      setTimeout(() => navigate('/login'), 2000);
+      setSuccess("Senha redefinida com sucesso!");
+      setTimeout(() => navigate("/login"), 2000);
     }
   };
 
