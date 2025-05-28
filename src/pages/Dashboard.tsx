@@ -55,19 +55,6 @@ const Dashboard = () => {
 
   if (loading) return null;
 
-  if (!hasCharges) {
-    return (
-      <div className="p-8 text-center space-y-4">
-        <h1 className="text-3xl font-bold text-black mt-16">Olá, {userName ?? '...'}</h1>
-        <p className="text-gray-600 text-lg">Você ainda não tem cobranças registradas.</p>
-        <p className="text-gray-500">Clique em "Nova Cobrança" para começar.</p>
-        <Button className="bg-howpay-gradient hover:bg-howpay-gradient-reverse text-white shadow-lg">
-          + Nova Cobrança
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -82,14 +69,14 @@ const Dashboard = () => {
         </Button>
       </div>
 
-      <DashboardStats />
+      <DashboardStats empty={!hasCharges} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <RevenueChart />
+          <RevenueChart empty={!hasCharges} />
         </div>
         <div>
-          <RecentCharges />
+          <RecentCharges empty={!hasCharges} />
         </div>
       </div>
     </div>
@@ -97,3 +84,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

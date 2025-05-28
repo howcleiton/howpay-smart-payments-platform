@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CreateChargeModalProps {
   isOpen: boolean;
@@ -23,10 +23,46 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ isOpen, onClose }
     description: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Creating charge:', formData);
-    onClose();
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+
+    if (!user) {
+      alert('Usuário não autenticado!');
+      return;
+    }
+
+    const { error } = await supabase.from('charges').insert([
+      {
+        customer_name: formData.customerName,
+        customer_email: formData.customerEmail,
+        amount: parseFloat(formData.amount),
+        method: formData.paymentMethod,
+        status: 'pending',
+        due_date: formData.dueDate || null,
+        description: formData.description || null,
+        user_id: user.id,
+        created_at: new Date().toISOString()
+      }
+    ]);
+
+    if (error) {
+      alert('Erro ao criar cobrança: ' + error.message);
+    } else {
+      alert('Cobrança criada com sucesso!');
+      onClose();
+      setFormData({
+        customerName: '',
+        customerEmail: '',
+        amount: '',
+        paymentMethod: '',
+        chargeType: 'single',
+        dueDate: '',
+        description: ''
+      });
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -42,7 +78,7 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ isOpen, onClose }
         <DialogHeader>
           <DialogTitle>Nova Cobrança</DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -56,7 +92,7 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ isOpen, onClose }
                 placeholder="João Silva"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="customerEmail">E-mail do cliente</Label>
               <Input
@@ -65,7 +101,6 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ isOpen, onClose }
                 type="email"
                 value={formData.customerEmail}
                 onChange={handleChange}
-                required
                 placeholder="joao@email.com"
               />
             </div>
@@ -85,7 +120,7 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ isOpen, onClose }
                 placeholder="0,00"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="dueDate">Vencimento</Label>
               <Input
@@ -94,7 +129,6 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ isOpen, onClose }
                 type="date"
                 value={formData.dueDate}
                 onChange={handleChange}
-                required
               />
             </div>
           </div>
@@ -102,7 +136,10 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ isOpen, onClose }
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Método de pagamento</Label>
-              <Select>
+              <Select
+                value={formData.paymentMethod}
+                onValueChange={(value) => setFormData({ ...formData, paymentMethod: value })}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o método" />
                 </SelectTrigger>
@@ -110,14 +147,16 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ isOpen, onClose }
                   <SelectItem value="pix">PIX</SelectItem>
                   <SelectItem value="boleto">Boleto</SelectItem>
                   <SelectItem value="cartao">Cartão</SelectItem>
-                  <SelectItem value="all">Todos os métodos</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
               <Label>Tipo de cobrança</Label>
-              <Select defaultValue="single">
+              <Select
+                value={formData.chargeType}
+                onValueChange={(value) => setFormData({ ...formData, chargeType: value })}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>

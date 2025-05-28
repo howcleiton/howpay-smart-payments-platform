@@ -1,43 +1,61 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
-const RecentCharges = () => {
-  const charges = [
-    {
-      id: '1',
-      customer: 'Maria Silva',
-      amount: 'R$ 299,00',
-      status: 'paid',
-      method: 'pix',
-      date: '2h atrás'
-    },
-    {
-      id: '2',
-      customer: 'João Santos',
-      amount: 'R$ 150,00',
-      status: 'pending',
-      method: 'boleto',
-      date: '5h atrás'
-    },
-    {
-      id: '3',
-      customer: 'Ana Costa',
-      amount: 'R$ 89,90',
-      status: 'paid',
-      method: 'cartao',
-      date: '1d atrás'
-    },
-    {
-      id: '4',
-      customer: 'Pedro Lima',
-      amount: 'R$ 199,00',
-      status: 'failed',
-      method: 'cartao',
-      date: '2d atrás'
-    }
-  ];
+type Charge = {
+  id: string;
+  customer_name: string;
+  amount: number;
+  status: string;
+  method: string;
+  created_at: string;
+};
+
+const RecentCharges = ({ empty = false }: { empty?: boolean }) => {
+  const [charges, setCharges] = useState<Charge[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCharges = async () => {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session?.user) {
+        console.error('Erro ao obter sessão:', sessionError?.message);
+        setLoading(false);
+        return;
+      }
+
+      const userId = sessionData.session.user.id;
+
+      const { data, error } = await supabase
+        .from('charges')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error('Erro ao buscar cobranças:', error.message);
+      } else {
+        setCharges(data ?? []);
+      }
+
+      setLoading(false);
+    };
+
+    fetchCharges();
+  }, []);
+
+  if (loading) return null;
+
+  if (charges.length === 0 || empty) {
+    return (
+      <Card className="p-6 h-[300px] flex flex-col items-center justify-center text-gray-400 text-center">
+        <p className="text-lg font-medium">Nenhuma cobrança recente encontrada.</p>
+        <p className="text-sm mt-1">As cobranças aparecerão aqui assim que forem criadas.</p>
+      </Card>
+    );
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -86,22 +104,22 @@ const RecentCharges = () => {
           Ver todas
         </Button>
       </div>
-      
+
       <div className="space-y-4">
         {charges.map((charge) => (
           <div key={charge.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
             <div className="flex items-center space-x-3">
-              <div className="text-2xl">
-                {getMethodIcon(charge.method)}
-              </div>
+              <div className="text-2xl">{getMethodIcon(charge.method)}</div>
               <div>
-                <p className="font-medium text-gray-900">{charge.customer}</p>
-                <p className="text-sm text-gray-600">{charge.date}</p>
+                <p className="font-medium text-gray-900">{charge.customer_name}</p>
+                <p className="text-sm text-gray-600">
+                  {new Date(charge.created_at).toLocaleString('pt-BR')}
+                </p>
               </div>
             </div>
-            
+
             <div className="text-right">
-              <p className="font-semibold text-gray-900">{charge.amount}</p>
+              <p className="font-semibold text-gray-900">R$ {charge.amount.toFixed(2)}</p>
               <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(charge.status)}`}>
                 {getStatusText(charge.status)}
               </span>
