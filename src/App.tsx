@@ -17,7 +17,7 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword"; // <- ESTA LINHA FALTAVA
+import ResetPassword from "./pages/reset-password"; // <- ESTA LINHA FALTAVA
 
 const queryClient = new QueryClient();
 
