@@ -8,11 +8,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 
 interface CreateChargeModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ isOpen, onClose }) => {
+const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ open, onOpenChange }) => {
   const [formData, setFormData] = useState({
     customerName: '',
     customerEmail: '',
@@ -52,7 +52,7 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ isOpen, onClose }
       alert('Erro ao criar cobrança: ' + error.message);
     } else {
       alert('Cobrança criada com sucesso!');
-      onClose();
+      onOpenChange(false);
       setFormData({
         customerName: '',
         customerEmail: '',
@@ -73,7 +73,7 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ isOpen, onClose }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Nova Cobrança</DialogTitle>
@@ -181,7 +181,7 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ isOpen, onClose }
           </div>
 
           <div className="flex justify-end space-x-3">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit" className="bg-primary hover:bg-primary-600 text-white">
