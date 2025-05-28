@@ -7,7 +7,10 @@ const companies = [
   { name: 'FinanceIO', icon: '💰' },
   { name: 'WebStore', icon: '🌐' },
   { name: 'AppSolutions', icon: '📱' },
-  { name: 'BeeLog', logo: '/logos/belog.jpg' }, // Nova empresa com logo
+  {
+    name: 'BeeLog',
+    logo: '/logos/belog.jpeg' // Corrigido para .jpeg
+  }
 ];
 
 const SocialProof = () => {
@@ -26,11 +29,13 @@ const SocialProof = () => {
               {company.icon ? (
                 <span className="text-4xl mb-2">{company.icon}</span>
               ) : (
-                <img
-                  src={company.logo}
-                  alt={company.name}
-                  className="w-10 h-10 object-contain mb-2"
-                />
+                <div className="w-10 h-10 mb-2">
+                  <img
+                    src={company.logo}
+                    alt={company.name}
+                    className="w-full h-full object-contain rounded"
+                  />
+                </div>
               )}
               {company.name}
             </div>
