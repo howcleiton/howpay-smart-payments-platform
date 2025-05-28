@@ -20,7 +20,14 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen space-y-6">
+    <div className="flex flex-col items-center justify-center h-screen space-y-6 bg-gray-50 px-4">
+      {/* Logo da Howpay */}
+      <img
+        src="/logos/howpay-logo.png"
+        alt="Howpay Logo"
+        className="w-20 h-20 mb-2"
+      />
+
       <h2 className="text-2xl font-bold">Esqueci minha senha</h2>
       <div className="space-y-2 w-96">
         <Label htmlFor="email">E-mail</Label>

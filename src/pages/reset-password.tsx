@@ -10,13 +10,11 @@ const ResetPassword = () => {
 
   useEffect(() => {
     const init = async () => {
-      // Extrai tokens da URL do Supabase
       const hash = window.location.hash;
       const params = new URLSearchParams(hash.replace("#", "?"));
       const access_token = params.get("access_token");
       const refresh_token = params.get("refresh_token");
 
-      // Se houver tokens, tenta iniciar a sessão
       if (access_token && refresh_token) {
         const { error } = await supabase.auth.setSession({
           access_token,
@@ -29,7 +27,7 @@ const ResetPassword = () => {
         }
       }
 
-      setReady(true); // Agora pode renderizar o formulário
+      setReady(true);
     };
 
     init();
@@ -53,11 +51,18 @@ const ResetPassword = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="max-w-md w-full bg-white p-8 rounded shadow">
-        <h1 className="text-xl font-bold mb-4 text-center">Redefinir senha</h1>
+      <div className="max-w-md w-full bg-white p-8 rounded shadow text-center">
+        {/* Logo da Howpay */}
+        <img
+          src="/logos/howpay-logo.png"
+          alt="Howpay Logo"
+          className="w-20 h-20 mx-auto mb-4"
+        />
+
+        <h1 className="text-xl font-bold mb-4">Redefinir senha</h1>
 
         <form onSubmit={handleSubmit}>
-          <label className="block mb-2">Nova senha:</label>
+          <label className="block mb-2 text-left">Nova senha:</label>
           <input
             type="password"
             className="w-full border px-3 py-2 rounded mb-4"
