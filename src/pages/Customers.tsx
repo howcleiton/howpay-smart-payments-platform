@@ -30,6 +30,9 @@ const Customers = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [currentCustomer, setCurrentCustomer] = useState(null);
 
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [newCustomer, setNewCustomer] = useState({ name: '', email: '', document: '' });
+
   const openEditModal = (customer: any) => {
     setCurrentCustomer(customer);
     setEditModalOpen(true);
@@ -46,6 +49,20 @@ const Customers = () => {
     setCustomers(prev => prev.filter(c => c.id !== id));
   };
 
+  const handleCreate = () => {
+    const id = (Math.random() * 100000).toFixed(0);
+    const newEntry = {
+      ...newCustomer,
+      id,
+      totalCharges: 0,
+      totalAmount: 0,
+      lastCharge: '-'
+    };
+    setCustomers(prev => [...prev, newEntry]);
+    setNewCustomer({ name: '', email: '', document: '' });
+    setCreateModalOpen(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -53,7 +70,10 @@ const Customers = () => {
           <h1 className="text-3xl font-bold text-gray-900">Clientes</h1>
           <p className="text-gray-600">Gerencie seus clientes</p>
         </div>
-        <Button className="bg-primary hover:bg-primary-600 text-white">
+        <Button
+          className="bg-primary hover:bg-primary-600 text-white"
+          onClick={() => setCreateModalOpen(true)}
+        >
           + Novo Cliente
         </Button>
       </div>
@@ -90,6 +110,7 @@ const Customers = () => {
         </table>
       </div>
 
+      {/* Modal Editar */}
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
         <DialogContent>
           <DialogHeader>
@@ -123,6 +144,41 @@ const Customers = () => {
               </Button>
             </form>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Criar */}
+      <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Novo Cliente</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => { e.preventDefault(); handleCreate(); }}>
+            <Label>Nome Completo ou Empresa</Label>
+            <Input
+              value={newCustomer.name}
+              onChange={(e) =>
+                setNewCustomer({ ...newCustomer, name: e.target.value })
+              }
+            />
+            <Label>Email</Label>
+            <Input
+              value={newCustomer.email}
+              onChange={(e) =>
+                setNewCustomer({ ...newCustomer, email: e.target.value })
+              }
+            />
+            <Label>CPF ou CNPJ</Label>
+            <Input
+              value={newCustomer.document}
+              onChange={(e) =>
+                setNewCustomer({ ...newCustomer, document: e.target.value })
+              }
+            />
+            <Button type="submit" className="mt-4">
+              Salvar
+            </Button>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
