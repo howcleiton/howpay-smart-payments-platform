@@ -1,29 +1,39 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
-  const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState("");
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const secureReset = async () => {
-      // ⚠️ Força o logout ao abrir esta página
-      await supabase.auth.signOut();
+    const init = async () => {
+      // Extrai tokens da URL do Supabase
+      const hash = window.location.hash;
+      const params = new URLSearchParams(hash.replace("#", "?"));
+      const access_token = params.get("access_token");
+      const refresh_token = params.get("refresh_token");
 
-      // Libera o formulário apenas após garantir que ninguém está logado
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        setConfirmed(true);
-      } else {
-        navigate("/dashboard"); // fallback (não deve acontecer após logout)
+      // Se houver tokens, tenta iniciar a sessão
+      if (access_token && refresh_token) {
+        const { error } = await supabase.auth.setSession({
+          access_token,
+          refresh_token,
+        });
+
+        if (error) {
+          setError("Erro ao recuperar sessão: " + error.message);
+          return;
+        }
       }
+
+      setReady(true); // Agora pode renderizar o formulário
     };
 
-    secureReset();
-  }, [navigate]);
+    init();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,15 +44,15 @@ const ResetPassword = () => {
     if (error) {
       setError(error.message);
     } else {
-      alert("Senha alterada com sucesso!");
+      alert("Senha redefinida com sucesso!");
       navigate("/login");
     }
   };
 
-  if (!confirmed) return null; // Esconde conteúdo até garantir segurança
+  if (!ready) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="max-w-md w-full bg-white p-8 rounded shadow">
         <h1 className="text-xl font-bold mb-4 text-center">Redefinir senha</h1>
 
@@ -71,4 +81,3 @@ const ResetPassword = () => {
 };
 
 export default ResetPassword;
-
