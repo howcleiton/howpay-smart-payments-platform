@@ -9,18 +9,20 @@ const ResetPassword = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // Verifica se o usuário está logado
-    const checkUser = async () => {
+    const secureReset = async () => {
+      // ⚠️ Força o logout ao abrir esta página
+      await supabase.auth.signOut();
+
+      // Libera o formulário apenas após garantir que ninguém está logado
       const { data } = await supabase.auth.getSession();
-      if (data.session?.user) {
-        // Se estiver logado, redireciona para dashboard
-        navigate("/dashboard");
+      if (!data.session) {
+        setConfirmed(true);
       } else {
-        setConfirmed(true); // libera o formulário
+        navigate("/dashboard"); // fallback (não deve acontecer após logout)
       }
     };
 
-    checkUser();
+    secureReset();
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,12 +39,12 @@ const ResetPassword = () => {
     }
   };
 
-  if (!confirmed) return null; // Esconde tudo até verificar login
+  if (!confirmed) return null; // Esconde conteúdo até garantir segurança
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full bg-white p-8 rounded shadow">
-        <h1 className="text-xl font-bold mb-4 text-center">Esqueci minha senha</h1>
+        <h1 className="text-xl font-bold mb-4 text-center">Redefinir senha</h1>
 
         <form onSubmit={handleSubmit}>
           <label className="block mb-2">Nova senha:</label>
@@ -69,3 +71,4 @@ const ResetPassword = () => {
 };
 
 export default ResetPassword;
+
