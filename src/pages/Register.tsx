@@ -19,50 +19,53 @@ const Register = () => {
     plan: 'free'
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    if (formData.password !== formData.confirmPassword) {
-      alert("As senhas não coincidem.");
-      return;
+  if (formData.password !== formData.confirmPassword) {
+    alert("As senhas não coincidem.");
+    return;
+  }
+
+  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+    email: formData.email,
+    password: formData.password,
+  });
+
+  if (signUpError) {
+    alert("Erro ao criar conta: " + signUpError.message);
+    return;
+  }
+
+  // ⚠️ Aguarde a sessão ser criada
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+  if (sessionError || !sessionData.session?.user) {
+    alert("Erro ao recuperar sessão do usuário.");
+    return;
+  }
+
+  const user = sessionData.session.user;
+
+  const { error: insertError } = await supabase.from("profiles").insert([
+    {
+      id: user.id,
+      full_name: formData.fullName,
+      document: formData.document,
+      company_name: formData.companyName,
+      plan: formData.plan,
+      user_id: user.id,
     }
+  ]);
 
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-    });
+  if (insertError) {
+    alert("Erro ao salvar perfil: " + insertError.message);
+    return;
+  }
 
-    if (signUpError) {
-      alert("Erro ao criar conta: " + signUpError.message);
-      return;
-    }
-
-    const user = signUpData.user;
-    if (!user) {
-      alert("Erro: usuário não retornado.");
-      return;
-    }
-
-    const { error: insertError } = await supabase.from("profiles").insert([
-      {
-        id: user.id,
-        full_name: formData.fullName,
-        email: formData.email,
-        document: formData.document,
-        company_name: formData.companyName,
-        plan: formData.plan,
-        user_id: user.id,
-      }
-    ]);
-
-    if (insertError) {
-      alert("Erro ao salvar perfil: " + insertError.message);
-      return;
-    }
-
-    alert("Conta criada com sucesso! Verifique seu e-mail.");
-    navigate("/login");
-  };
+  alert("Conta criada com sucesso!");
+  navigate("/dashboard");
+};
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
