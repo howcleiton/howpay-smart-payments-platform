@@ -64,7 +64,10 @@ const Dashboard = () => {
           </h1>
           <p className="text-gray-600">Visão geral dos seus pagamentos</p>
         </div>
-        <Button className="bg-howpay-gradient hover:bg-howpay-gradient-reverse text-white shadow-lg">
+        <Button
+          className="bg-howpay-gradient hover:bg-howpay-gradient-reverse text-white shadow-lg"
+          onClick={() => navigate('/charges')}
+        >
           + Nova Cobrança
         </Button>
       </div>
@@ -84,4 +87,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

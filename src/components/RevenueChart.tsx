@@ -1,18 +1,60 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { supabase } from '@/integrations/supabase/client';
 
 const RevenueChart = () => {
-  const data = [
-    { name: '1', value: 2400 },
-    { name: '5', value: 1398 },
-    { name: '10', value: 9800 },
-    { name: '15', value: 3908 },
-    { name: '20', value: 4800 },
-    { name: '25', value: 3800 },
-    { name: '30', value: 4300 }
-  ];
+  const [data, setData] = useState<{ name: string; value: number }[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user?.id;
+      if (!userId) return;
+
+      const today = new Date();
+      const start = new Date();
+      start.setDate(today.getDate() - 29);
+      start.setHours(0, 0, 0, 0);
+
+      const { data: charges, error } = await supabase
+        .from('charges')
+        .select('amount, created_at')
+        .eq('user_id', userId)
+        .eq('status', 'paid')
+        .gte('created_at', start.toISOString());
+
+      if (error || !charges) {
+        console.error(error);
+        return;
+      }
+
+      const dailyTotals: { [date: string]: number } = {};
+
+      for (let i = 0; i < 30; i++) {
+        const date = new Date(start);
+        date.setDate(date.getDate() + i);
+        const key = date.toISOString().split('T')[0];
+        dailyTotals[key] = 0;
+      }
+
+      charges.forEach((charge) => {
+        const date = new Date(charge.created_at).toISOString().split('T')[0];
+        if (dailyTotals[date] !== undefined) {
+          dailyTotals[date] += charge.amount;
+        }
+      });
+
+      const finalData = Object.entries(dailyTotals).map(([date, total]) => ({
+        name: date.slice(5), // mostra MM-DD
+        value: total,
+      }));
+
+      setData(finalData);
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <Card className="p-6">
@@ -30,29 +72,29 @@ const RevenueChart = () => {
           </button>
         </div>
       </div>
-      
+
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis 
-              dataKey="name" 
+            <XAxis
+              dataKey="name"
               stroke="#888888"
               fontSize={12}
             />
-            <YAxis 
+            <YAxis
               stroke="#888888"
               fontSize={12}
-              tickFormatter={(value) => `R$ ${value}`}
+              tickFormatter={(value) => `R$ ${value.toFixed(0)}`}
             />
-            <Tooltip 
-              formatter={(value) => [`R$ ${value}`, 'Receita']}
+            <Tooltip
+              formatter={(value: number) => [`R$ ${value.toFixed(2)}`, 'Receita']}
               labelFormatter={(label) => `Dia ${label}`}
             />
-            <Line 
-              type="monotone" 
-              dataKey="value" 
-              stroke="#2363eb" 
+            <Line
+              type="monotone"
+              dataKey="value"
+              stroke="#2363eb"
               strokeWidth={3}
               dot={{ fill: '#2363eb', strokeWidth: 2, r: 6 }}
               activeDot={{ r: 8, stroke: '#2363eb', strokeWidth: 2 }}
