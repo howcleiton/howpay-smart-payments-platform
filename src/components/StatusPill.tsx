@@ -8,7 +8,9 @@ const StatusPill: React.FC<StatusPillProps> = ({ status }) => {
   const config = {
     paid: { label: 'Pago', color: 'bg-green-100 text-green-800' },
     pending: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
-    expired: { label: 'Não Pago', color: 'bg-red-100 text-red-800' }
+    expired: { label: 'Não Pago', color: 'bg-red-100 text-red-800' },
+    canceled: { label: 'Cancelado', color: 'bg-red-100 text-red-800' },
+    failed: { label: 'Falhou', color: 'bg-red-100 text-red-800' }
   };
 
   const { label, color } = config[status as keyof typeof config] || {
