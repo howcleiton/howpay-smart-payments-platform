@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from 'react';
+import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { format, parseISO, subDays, subHours } from 'date-fns';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+} from 'recharts';
+import { format, subDays, subHours } from 'date-fns';
 
-interface Charge {
+type Charge = {
   amount: number;
   created_at: string;
-}
+};
 
 const RevenueChart = () => {
+  const [data, setData] = useState<{ name: string; value: number }[]>([]);
   const [range, setRange] = useState<'30d' | '7d' | '24h' | 'custom'>('30d');
-  const [chartData, setChartData] = useState<{ label: string; value: number }[]>([]);
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
 
@@ -19,53 +23,73 @@ const RevenueChart = () => {
       const user = sessionData.session?.user;
       if (!user) return;
 
-      let startDate: Date = new Date();
-      let endDate: Date = new Date();
+      let start: Date = new Date();
+      let end: Date = new Date();
 
-      if (range === '30d') {
-        startDate = subDays(new Date(), 30);
-      } else if (range === '7d') {
-        startDate = subDays(new Date(), 7);
-      } else if (range === '24h') {
-        startDate = subHours(new Date(), 24);
-      } else if (range === 'custom') {
+      if (range === '30d') start = subDays(new Date(), 29);
+      else if (range === '7d') start = subDays(new Date(), 6);
+      else if (range === '24h') start = subHours(new Date(), 23);
+      else if (range === 'custom') {
         if (!customStart || !customEnd) return;
-        startDate = new Date(customStart);
-        endDate = new Date(customEnd);
+        start = new Date(customStart);
+        end = new Date(customEnd);
       }
 
-      const { data, error } = await supabase
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+
+      const { data: charges, error } = await supabase
         .from('charges')
-        .select('*')
+        .select('amount, created_at')
         .eq('user_id', user.id)
         .eq('status', 'paid')
-        .gte('created_at', startDate.toISOString())
-        .lte('created_at', endDate.toISOString());
+        .gte('created_at', start.toISOString())
+        .lte('created_at', end.toISOString());
 
-      if (error) {
-        console.error('Erro ao buscar dados:', error);
+      if (error || !charges) {
+        console.error(error);
         return;
       }
 
-      const grouped = data.reduce((acc: Record<string, number>, charge: Charge) => {
-        const key = range === '24h'
-          ? format(new Date(charge.created_at), 'HH:00')
-          : format(new Date(charge.created_at), 'MM-dd');
-        acc[key] = (acc[key] || 0) + charge.amount;
-        return acc;
-      }, {});
+      const totals: { [key: string]: number } = {};
+      const interval = range === '24h'
+        ? 24
+        : Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 
-      const result = Object.entries(grouped).map(([label, value]) => ({ label, value }));
-      setChartData(result);
+      for (let i = 0; i <= interval; i++) {
+        const date = new Date(start);
+        if (range === '24h') {
+          date.setHours(start.getHours() + i);
+          const label = format(date, 'HH:00');
+          totals[label] = 0;
+        } else {
+          date.setDate(start.getDate() + i);
+          const label = format(date, 'MM-dd');
+          totals[label] = 0;
+        }
+      }
+
+      charges.forEach(charge => {
+        const date = new Date(charge.created_at);
+        const label = range === '24h' ? format(date, 'HH:00') : format(date, 'MM-dd');
+        if (totals[label] !== undefined) {
+          totals[label] += charge.amount;
+        }
+      });
+
+      const finalData = Object.entries(totals).map(([name, value]) => ({ name, value }));
+      setData(finalData);
     };
 
     fetchData();
   }, [range, customStart, customEnd]);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
+    <Card className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Receita dos últimos {range === 'custom' ? 'personalizado' : range}</h2>
+        <h3 className="text-lg font-semibold text-gray-900">
+          Receita dos últimos {range === 'custom' ? 'período personalizado' : range}
+        </h3>
         <div className="flex gap-2">
           <button className={`px-2 py-1 rounded ${range === '30d' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`} onClick={() => setRange('30d')}>30d</button>
           <button className={`px-2 py-1 rounded ${range === '7d' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`} onClick={() => setRange('7d')}>7d</button>
@@ -77,26 +101,26 @@ const RevenueChart = () => {
       {range === 'custom' && (
         <div className="flex gap-4 mb-4">
           <div>
-            <label className="block text-sm text-gray-600">Início</label>
+            <label className="text-sm">Início</label>
             <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="border px-2 py-1 rounded" />
           </div>
           <div>
-            <label className="block text-sm text-gray-600">Fim</label>
+            <label className="text-sm">Fim</label>
             <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="border px-2 py-1 rounded" />
           </div>
         </div>
       )}
 
-      <div className="h-64 border rounded bg-gray-50 p-4 text-gray-400 flex justify-center items-center">
-        {chartData.length === 0 ? 'Sem dados para exibir' : (
-          <ul className="w-full space-y-2 text-sm text-left">
-            {chartData.map((item) => (
-              <li key={item.label} className="text-black">{item.label}: R$ {item.value.toFixed(2)}</li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis tickFormatter={(v) => `R$ ${v}`} />
+          <Tooltip formatter={(value: number) => `R$ ${value.toFixed(2)}`} />
+          <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
+        </LineChart>
+      </ResponsiveContainer>
+    </Card>
   );
 };
 
