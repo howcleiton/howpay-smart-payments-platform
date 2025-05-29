@@ -60,12 +60,20 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ open, onOpenChang
 
     const user = session.user;
 
+    // Conversão segura do amount (suporta vírgula e ponto)
+    const parsedAmount = parseFloat(formData.amount.replace(',', '.'));
+
+    if (isNaN(parsedAmount)) {
+      alert('Valor inválido.');
+      return;
+    }
+
     const { error } = await supabase.from('charges').insert(
       [
         {
           customer_name: formData.customerName,
           customer_email: formData.customerEmail,
-          amount: parseFloat(formData.amount),
+          amount: parsedAmount,
           due_date: formData.dueDate,
           method: formData.paymentMethod,
           type: formData.chargeType,
@@ -74,11 +82,11 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ open, onOpenChang
           user_id: user.id,
         }
       ],
-      { returning: 'minimal' } // evita erro de RLS no SELECT
+      { returning: 'minimal' }
     );
 
     if (error) {
-      console.error('Erro ao criar cobrança:', error);
+      console.error('Erro ao criar cobrança:', error.message, error.details);
       alert('Erro ao criar cobrança. Veja o console.');
       return;
     }
@@ -114,8 +122,8 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ open, onOpenChang
             <div>
               <Label>Valor</Label>
               <Input
-                type="number"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
               />
