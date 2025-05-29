@@ -1,112 +1,105 @@
 import React, { useEffect, useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 const Settings = () => {
-  const [userData, setUserData] = useState({
-    fullName: '',
-    email: '',
-    companyName: '',
-  });
+  const [fullName, setFullName] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [email, setEmail] = useState('');
+  const [apiKey, setApiKey] = useState('');
+  const [webhookUrl, setWebhookUrl] = useState('');
+  const [userId, setUserId] = useState('');
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id;
+    const load = async () => {
+      const session = await supabase.auth.getSession();
+      const user = session.data.session?.user;
+      if (!user) return;
 
-      if (!userId) return;
+      setUserId(user.id);
+      setEmail(user.email || '');
 
-      const { data, error } = await supabase
+      const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, email, company_name')
-        .eq('user_id', userId)
+        .select('full_name')
+        .eq('user_id', user.id)
         .single();
 
-      if (data) {
-        setUserData({
-          fullName: data.full_name,
-          email: data.email,
-          companyName: data.company_name,
-        });
+      setFullName(profile?.full_name || '');
+
+      const { data: apiConfig } = await supabase
+        .from('api_configs')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (apiConfig) {
+        setApiKey(apiConfig.api_key);
+        setWebhookUrl(apiConfig.webhook_url || '');
       } else {
-        console.error("Erro ao buscar dados do perfil:", error);
+        // Cria novo registro se não existir
+        const newKey = 'hpay_pk_' + crypto.randomUUID().replace(/-/g, '');
+        setApiKey(newKey);
+
+        await supabase.from('api_configs').insert({
+          user_id: user.id,
+          api_key: newKey,
+          webhook_url: ''
+        });
       }
     };
 
-    fetchUserData();
+    load();
   }, []);
 
+  const handleSaveWebhook = async () => {
+    await supabase
+      .from('api_configs')
+      .update({ webhook_url: webhookUrl })
+      .eq('user_id', userId);
+
+    alert('Webhook atualizado!');
+  };
+
+  const handleRegenerateKey = async () => {
+    const newKey = 'hpay_pk_' + crypto.randomUUID().replace(/-/g, '');
+    setApiKey(newKey);
+
+    await supabase
+      .from('api_configs')
+      .update({ api_key: newKey })
+      .eq('user_id', userId);
+
+    alert('Nova chave gerada!');
+  };
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
-        <p className="text-gray-600">Gerencie suas configurações da conta</p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Informações da Conta</h3>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Nome completo</Label>
-                  <Input id="name" value={userData.fullName} readOnly />
-                </div>
-                <div>
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input id="email" value={userData.email} readOnly />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="company">Nome da empresa</Label>
-                <Input id="company" value={userData.companyName} readOnly />
-              </div>
-              <Button className="bg-primary hover:bg-primary-600 text-white" disabled>
-                Salvar alterações
-              </Button>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Configurações de API</h3>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="api-key">Chave da API</Label>
-                <div className="flex space-x-2">
-                  <Input id="api-key" value="hpay_pk_************" readOnly />
-                  <Button variant="outline">Regenerar</Button>
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="webhook">URL do Webhook</Label>
-                <Input id="webhook" placeholder="https://seusite.com/webhook" />
-              </div>
-            </div>
-          </Card>
+    <div className="space-y-6 p-6">
+      <h1 className="text-2xl font-bold">Configurações</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Informações da Conta</h2>
+          <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Nome completo" />
+          <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Nome da empresa" />
+          <Input value={email} disabled />
+          <Button>Salvar alterações</Button>
         </div>
 
-        <div>
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Seu Plano</h3>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-success rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-2xl">👑</span>
-              </div>
-              <h4 className="font-semibold text-gray-900">Plano Premium</h4>
-              <p className="text-sm text-gray-600 mb-4">Cobranças ilimitadas</p>
-              <p className="text-2xl font-bold text-gray-900 mb-4">R$ 29/mês</p>
-              <Button variant="outline" className="w-full mb-2">
-                Gerenciar assinatura
-              </Button>
-              <Button variant="outline" className="w-full text-red-600 hover:text-red-700">
-                Cancelar plano
-              </Button>
-            </div>
-          </Card>
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Configurações de API</h2>
+          <label className="block text-sm font-medium text-gray-700">Chave da API</label>
+          <div className="flex gap-2">
+            <Input value={apiKey} readOnly />
+            <Button onClick={handleRegenerateKey}>Regenerar</Button>
+          </div>
+          <label className="block text-sm font-medium text-gray-700">URL do Webhook</label>
+          <Input
+            value={webhookUrl}
+            onChange={(e) => setWebhookUrl(e.target.value)}
+            placeholder="https://seusite.com/webhook"
+          />
+          <Button onClick={handleSaveWebhook}>Salvar Webhook</Button>
         </div>
       </div>
     </div>
@@ -114,4 +107,3 @@ const Settings = () => {
 };
 
 export default Settings;
-;
