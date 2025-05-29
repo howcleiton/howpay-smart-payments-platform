@@ -8,7 +8,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -31,37 +37,49 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ open, onOpenChang
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validação mínima
-    if (!formData.customerName || !formData.customerEmail || !formData.amount || !formData.paymentMethod || !formData.dueDate) {
-      alert('Por favor, preencha todos os campos obrigatórios.');
+    if (
+      !formData.customerName ||
+      !formData.customerEmail ||
+      !formData.amount ||
+      !formData.paymentMethod ||
+      !formData.dueDate
+    ) {
+      alert('Preencha todos os campos obrigatórios.');
       return;
     }
 
-    const { data: sessionData } = await supabase.auth.getSession();
-    const user = sessionData.session?.user;
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
-    if (!user) {
+    if (sessionError || !session?.user) {
       alert('Usuário não autenticado.');
       return;
     }
 
-    const { error } = await supabase.from('charges').insert([
-      {
-        customer_name: formData.customerName,
-        customer_email: formData.customerEmail,
-        amount: parseFloat(formData.amount),
-        due_date: formData.dueDate,
-        method: formData.paymentMethod,
-        type: formData.chargeType,
-        description: formData.description,
-        status: 'pending',
-        user_id: user.id,
-      }
-    ]);
+    const user = session.user;
+
+    const { error } = await supabase.from('charges').insert(
+      [
+        {
+          customer_name: formData.customerName,
+          customer_email: formData.customerEmail,
+          amount: parseFloat(formData.amount),
+          due_date: formData.dueDate,
+          method: formData.paymentMethod,
+          type: formData.chargeType,
+          description: formData.description,
+          status: 'pending',
+          user_id: user.id,
+        }
+      ],
+      { returning: 'minimal' } // evita erro de RLS no SELECT
+    );
 
     if (error) {
       console.error('Erro ao criar cobrança:', error);
-      alert('Erro ao criar cobrança. Veja o console para detalhes.');
+      alert('Erro ao criar cobrança. Veja o console.');
       return;
     }
 
@@ -125,7 +143,10 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ open, onOpenChang
             </div>
             <div>
               <Label>Tipo de Cobrança</Label>
-              <Select onValueChange={(value) => setFormData({ ...formData, chargeType: value })} defaultValue="single">
+              <Select
+                onValueChange={(value) => setFormData({ ...formData, chargeType: value })}
+                defaultValue="single"
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
