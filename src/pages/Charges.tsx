@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import CreateChargeModal from '@/components/CreateChargeModal';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 type Charge = {
   id: string;
@@ -16,6 +17,8 @@ const Charges = () => {
   const [charges, setCharges] = useState<Charge[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const fetchCharges = async () => {
     const { data: sessionData } = await supabase.auth.getSession();
@@ -38,9 +41,18 @@ const Charges = () => {
     setLoading(false);
   };
 
+  // Ao carregar, buscar cobranças
   useEffect(() => {
     fetchCharges();
   }, []);
+
+  // Abre o modal automaticamente se ?new=true na URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('new') === 'true') {
+      setIsCreateModalOpen(true);
+    }
+  }, [location.search]);
 
   return (
     <div className="space-y-6">
@@ -91,7 +103,10 @@ const Charges = () => {
         open={isCreateModalOpen}
         onOpenChange={(open) => {
           setIsCreateModalOpen(open);
-          if (!open) fetchCharges(); // recarrega quando fechar o modal
+          if (!open) {
+            fetchCharges();
+            navigate('/charges', { replace: true }); // remove ?new=true da URL
+          }
         }}
       />
     </div>
@@ -99,3 +114,4 @@ const Charges = () => {
 };
 
 export default Charges;
+

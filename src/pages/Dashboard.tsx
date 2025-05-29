@@ -66,7 +66,7 @@ const Dashboard = () => {
         </div>
         <Button
           className="bg-howpay-gradient hover:bg-howpay-gradient-reverse text-white shadow-lg"
-          onClick={() => navigate('/charges/create')}
+          onClick={() => navigate('/charges?new=true')}
 
         >
           + Nova Cobrança

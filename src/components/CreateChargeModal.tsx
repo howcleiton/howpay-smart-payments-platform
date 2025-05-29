@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,164 +34,107 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ open, onOpenChang
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData.session?.user;
 
-    if (!user) {
-      alert('Usuário não autenticado!');
-      return;
-    }
+    if (!user) return alert('Usuário não autenticado.');
 
     const { error } = await supabase.from('charges').insert([
       {
         customer_name: formData.customerName,
         customer_email: formData.customerEmail,
         amount: parseFloat(formData.amount),
+        due_date: formData.dueDate,
         method: formData.paymentMethod,
+        type: formData.chargeType,
+        description: formData.description,
         status: 'pending',
-        due_date: formData.dueDate || null,
-        description: formData.description || null,
         user_id: user.id,
-        created_at: new Date().toISOString()
       }
     ]);
 
     if (error) {
-      alert('Erro ao criar cobrança: ' + error.message);
-    } else {
-      alert('Cobrança criada com sucesso!');
-      onOpenChange(false);
-      setFormData({
-        customerName: '',
-        customerEmail: '',
-        amount: '',
-        paymentMethod: '',
-        chargeType: 'single',
-        dueDate: '',
-        description: ''
-      });
+      console.error('Erro ao criar cobrança:', error);
+      return;
     }
-  };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    alert('Cobrança criada com sucesso!');
+    onOpenChange(false); // Fecha o modal
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Nova Cobrança</DialogTitle>
         </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="customerName">Nome do cliente</Label>
+              <Label>Nome do cliente</Label>
               <Input
-                id="customerName"
-                name="customerName"
+                type="text"
                 value={formData.customerName}
-                onChange={handleChange}
-                required
-                placeholder="João Silva"
+                onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
               />
             </div>
-
             <div>
-              <Label htmlFor="customerEmail">E-mail do cliente</Label>
+              <Label>Email do cliente</Label>
               <Input
-                id="customerEmail"
-                name="customerEmail"
                 type="email"
                 value={formData.customerEmail}
-                onChange={handleChange}
-                placeholder="joao@email.com"
+                onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
               />
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="amount">Valor</Label>
+              <Label>Valor</Label>
               <Input
-                id="amount"
-                name="amount"
                 type="number"
                 step="0.01"
                 value={formData.amount}
-                onChange={handleChange}
-                required
-                placeholder="0,00"
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
               />
             </div>
-
             <div>
-              <Label htmlFor="dueDate">Vencimento</Label>
+              <Label>Vencimento</Label>
               <Input
-                id="dueDate"
-                name="dueDate"
                 type="date"
                 value={formData.dueDate}
-                onChange={handleChange}
+                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
               />
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label>Método de pagamento</Label>
-              <Select
-                value={formData.paymentMethod}
-                onValueChange={(value) => setFormData({ ...formData, paymentMethod: value })}
-              >
+              <Label>Método de Pagamento</Label>
+              <Select onValueChange={(value) => setFormData({ ...formData, paymentMethod: value })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o método" />
+                  <SelectValue placeholder="Escolha um método" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pix">PIX</SelectItem>
+                  <SelectItem value="pix">Pix</SelectItem>
                   <SelectItem value="boleto">Boleto</SelectItem>
                   <SelectItem value="cartao">Cartão</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
             <div>
-              <Label>Tipo de cobrança</Label>
-              <Select
-                value={formData.chargeType}
-                onValueChange={(value) => setFormData({ ...formData, chargeType: value })}
-              >
+              <Label>Tipo de Cobrança</Label>
+              <Select onValueChange={(value) => setFormData({ ...formData, chargeType: value })} defaultValue="single">
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
+                  <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="single">Única</SelectItem>
-                  <SelectItem value="recurring">Recorrente</SelectItem>
+                  <SelectItem value="recorrente">Recorrente</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
-
           <div>
-            <Label htmlFor="description">Descrição (opcional)</Label>
+            <Label>Descrição (opcional)</Label>
             <Textarea
-              id="description"
-              name="description"
               value={formData.description}
-              onChange={handleChange}
-              placeholder="Descrição da cobrança..."
-              rows={3}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
           </div>
-
-          <div className="flex justify-end space-x-3">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit" className="bg-primary hover:bg-primary-600 text-white">
-              Criar Cobrança
-            </Button>
+          <div className="flex justify-end">
+            <Button type="submit">Criar Cobrança</Button>
           </div>
         </form>
       </DialogContent>
