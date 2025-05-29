@@ -60,10 +60,12 @@ const RecentCharges = ({ empty = false }: { empty?: boolean }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'paid':
-        return 'bg-success text-white';
+        return 'bg-green-500 text-white';
       case 'pending':
-        return 'bg-warning text-white';
+        return 'bg-yellow-400 text-white';
       case 'failed':
+      case 'expired':
+      case 'canceled':
         return 'bg-red-500 text-white';
       default:
         return 'bg-gray-500 text-white';
@@ -78,6 +80,10 @@ const RecentCharges = ({ empty = false }: { empty?: boolean }) => {
         return 'Pendente';
       case 'failed':
         return 'Falhou';
+      case 'expired':
+        return 'Não Pago';
+      case 'canceled':
+        return 'Cancelado';
       default:
         return 'Desconhecido';
     }
