@@ -31,10 +31,19 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ open, onOpenChang
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validação mínima
+    if (!formData.customerName || !formData.customerEmail || !formData.amount || !formData.paymentMethod || !formData.dueDate) {
+      alert('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData.session?.user;
 
-    if (!user) return alert('Usuário não autenticado.');
+    if (!user) {
+      alert('Usuário não autenticado.');
+      return;
+    }
 
     const { error } = await supabase.from('charges').insert([
       {
@@ -52,11 +61,12 @@ const CreateChargeModal: React.FC<CreateChargeModalProps> = ({ open, onOpenChang
 
     if (error) {
       console.error('Erro ao criar cobrança:', error);
+      alert('Erro ao criar cobrança. Veja o console para detalhes.');
       return;
     }
 
     alert('Cobrança criada com sucesso!');
-    onOpenChange(false); // Fecha o modal
+    onOpenChange(false);
   };
 
   return (
