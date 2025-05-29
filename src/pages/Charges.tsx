@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import CreateChargeModal from '@/components/CreateChargeModal';
-import { sendWebhook } from '@/lib/webhook';
 
 type Charge = {
   id: string;
@@ -39,7 +38,7 @@ const Charges = () => {
       .from('charges')
       .update({ status: 'paid' })
       .eq('id', charge.id)
-      .eq('user_id', charge.user_id); // 🟢 garantir que é do usuário certo
+      .eq('user_id', charge.user_id);
 
     if (error) {
       console.error('❌ Erro ao marcar como paga:', error);
@@ -49,15 +48,27 @@ const Charges = () => {
 
     alert('✅ Cobrança marcada como paga!');
 
-    // 🔁 Enviar webhook
-    await sendWebhook(charge.user_id, {
-      charge_id: charge.id,
-      amount: charge.amount,
-      status: 'paid',
-      paid_at: new Date().toISOString()
-    }, 'charge.paid');
+    // 🔁 Enviar webhook via Netlify Function
+    try {
+      await fetch('/.netlify/functions/sendWebhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: charge.user_id,
+          event: 'charge.paid',
+          payload: {
+            charge_id: charge.id,
+            amount: charge.amount,
+            status: 'paid',
+            paid_at: new Date().toISOString()
+          }
+        })
+      });
+    } catch (err) {
+      console.error('Erro ao enviar webhook:', err);
+    }
 
-    // 🔄 Recarregar lista
+    // 🔄 Recarregar a lista
     await fetchCharges();
   };
 
