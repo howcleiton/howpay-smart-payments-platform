@@ -17,7 +17,7 @@ export async function sendWebhook(userId: string, payload: any, event: string) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Howpay-Signature': 'em breve vamos assinar isso com segurança 😉'
+        'X-Howpay-Signature': 'placeholder-signature'
       },
       body: JSON.stringify({
         event,
