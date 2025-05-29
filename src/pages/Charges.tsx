@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import CreateChargeModal from '@/components/CreateChargeModal';
-import { sendWebhook } from '@/lib/webhook'; // <- IMPORTANTE
+import { sendWebhook } from '@/lib/webhook';
 
 type Charge = {
   id: string;
@@ -38,16 +38,18 @@ const Charges = () => {
     const { error } = await supabase
       .from('charges')
       .update({ status: 'paid' })
-      .eq('id', charge.id);
+      .eq('id', charge.id)
+      .eq('user_id', charge.user_id); // 🟢 garantir que é do usuário certo
 
     if (error) {
-      console.error('Erro ao marcar como paga:', error);
+      console.error('❌ Erro ao marcar como paga:', error);
+      alert('Erro ao atualizar cobrança no Supabase.');
       return;
     }
 
-    alert('Cobrança marcada como paga!');
+    alert('✅ Cobrança marcada como paga!');
 
-    // Enviar webhook para o cliente (empresa)
+    // 🔁 Enviar webhook
     await sendWebhook(charge.user_id, {
       charge_id: charge.id,
       amount: charge.amount,
@@ -55,7 +57,8 @@ const Charges = () => {
       paid_at: new Date().toISOString()
     }, 'charge.paid');
 
-    fetchCharges(); // recarrega lista
+    // 🔄 Recarregar lista
+    await fetchCharges();
   };
 
   useEffect(() => {
