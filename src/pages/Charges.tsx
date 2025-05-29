@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
 import CreateChargeModal from '@/components/CreateChargeModal';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { sendWebhook } from '@/lib/webhook'; // <- IMPORTANTE
 
 type Charge = {
   id: string;
@@ -11,19 +11,17 @@ type Charge = {
   status: string;
   method: string;
   created_at: string;
+  user_id: string;
 };
 
 const Charges = () => {
   const [charges, setCharges] = useState<Charge[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
 
   const fetchCharges = async () => {
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user?.id;
-
     if (!userId) return;
 
     const { data, error } = await supabase
@@ -32,81 +30,89 @@ const Charges = () => {
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Erro ao buscar cobranças:', error.message);
-    } else {
-      setCharges(data as Charge[]);
-    }
-
+    if (!error && data) setCharges(data as Charge[]);
     setLoading(false);
   };
 
-  // Ao carregar, buscar cobranças
+  const handleMarkAsPaid = async (charge: Charge) => {
+    const { error } = await supabase
+      .from('charges')
+      .update({ status: 'paid' })
+      .eq('id', charge.id);
+
+    if (error) {
+      console.error('Erro ao marcar como paga:', error);
+      return;
+    }
+
+    alert('Cobrança marcada como paga!');
+
+    // Enviar webhook para o cliente (empresa)
+    await sendWebhook(charge.user_id, {
+      charge_id: charge.id,
+      amount: charge.amount,
+      status: 'paid',
+      paid_at: new Date().toISOString()
+    }, 'charge.paid');
+
+    fetchCharges(); // recarrega lista
+  };
+
   useEffect(() => {
     fetchCharges();
   }, []);
 
-  // Abre o modal automaticamente se ?new=true na URL
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get('new') === 'true') {
-      setIsCreateModalOpen(true);
-    }
-  }, [location.search]);
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Cobranças</h1>
-          <p className="text-gray-600">Gerencie todas as suas cobranças</p>
-        </div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
-          + Nova Cobrança
-        </Button>
+        <h1 className="text-2xl font-bold">Cobranças</h1>
+        <Button onClick={() => setIsCreateModalOpen(true)}>+ Nova Cobrança</Button>
       </div>
 
       {loading ? (
         <p>Carregando...</p>
       ) : charges.length === 0 ? (
-        <p>Você ainda não tem nenhuma cobrança cadastrada.</p>
+        <p>Nenhuma cobrança encontrada.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full table-auto border-collapse mt-4">
-            <thead>
-              <tr className="text-left border-b">
-                <th className="p-2">Cliente</th>
-                <th className="p-2">Valor</th>
-                <th className="p-2">Status</th>
-                <th className="p-2">Método</th>
-                <th className="p-2">Criado em</th>
+        <table className="w-full table-auto border-collapse mt-4">
+          <thead>
+            <tr className="text-left border-b">
+              <th className="p-2">Cliente</th>
+              <th className="p-2">Valor</th>
+              <th className="p-2">Status</th>
+              <th className="p-2">Método</th>
+              <th className="p-2">Criado em</th>
+              <th className="p-2">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {charges.map((charge) => (
+              <tr key={charge.id} className="border-b">
+                <td className="p-2">{charge.customer_name}</td>
+                <td className="p-2">R$ {charge.amount.toFixed(2)}</td>
+                <td className="p-2">{charge.status}</td>
+                <td className="p-2">{charge.method.toUpperCase()}</td>
+                <td className="p-2">
+                  {new Date(charge.created_at).toLocaleDateString('pt-BR')}
+                </td>
+                <td className="p-2">
+                  {charge.status !== 'paid' && (
+                    <Button size="sm" onClick={() => handleMarkAsPaid(charge)}>
+                      Marcar como pago
+                    </Button>
+                  )}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {charges.map((charge) => (
-                <tr key={charge.id} className="border-b">
-                  <td className="p-2">{charge.customer_name}</td>
-                  <td className="p-2">R$ {charge.amount.toFixed(2)}</td>
-                  <td className="p-2">{charge.status}</td>
-                  <td className="p-2">{charge.method.toUpperCase()}</td>
-                  <td className="p-2">
-                    {new Date(charge.created_at).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       )}
 
       <CreateChargeModal
         open={isCreateModalOpen}
         onOpenChange={(open) => {
           setIsCreateModalOpen(open);
-          if (!open) {
-            fetchCharges();
-            navigate('/charges', { replace: true }); // remove ?new=true da URL
-          }
+          if (!open) fetchCharges();
         }}
       />
     </div>
@@ -114,4 +120,3 @@ const Charges = () => {
 };
 
 export default Charges;
-
