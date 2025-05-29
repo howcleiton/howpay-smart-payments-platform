@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import CreateChargeModal from '@/components/CreateChargeModal';
+import StatusPill from '@/components/StatusPill';
 
 type Charge = {
   id: string;
@@ -48,7 +49,6 @@ const Charges = () => {
 
     alert('✅ Cobrança marcada como paga!');
 
-    // 🔁 Enviar webhook via Netlify Function
     try {
       await fetch('/.netlify/functions/sendWebhook', {
         method: 'POST',
@@ -68,7 +68,6 @@ const Charges = () => {
       console.error('Erro ao enviar webhook:', err);
     }
 
-    // 🔄 Recarregar a lista
     await fetchCharges();
   };
 
@@ -104,7 +103,9 @@ const Charges = () => {
               <tr key={charge.id} className="border-b">
                 <td className="p-2">{charge.customer_name}</td>
                 <td className="p-2">R$ {charge.amount.toFixed(2)}</td>
-                <td className="p-2">{charge.status}</td>
+                <td className="p-2">
+                  <StatusPill status={charge.status} />
+                </td>
                 <td className="p-2">{charge.method.toUpperCase()}</td>
                 <td className="p-2">
                   {new Date(charge.created_at).toLocaleDateString('pt-BR')}
