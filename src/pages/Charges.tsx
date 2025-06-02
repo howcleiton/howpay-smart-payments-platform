@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import CreateChargeModal from '@/components/CreateChargeModal';
@@ -17,7 +18,18 @@ type Charge = {
 const Charges = () => {
   const [charges, setCharges] = useState<Charge[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const shouldOpenModal = queryParams.get('new') === 'true';
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(shouldOpenModal);
+
+  useEffect(() => {
+    if (shouldOpenModal) {
+      const newUrl = location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [shouldOpenModal]);
 
   const fetchCharges = async () => {
     const { data: sessionData } = await supabase.auth.getSession();

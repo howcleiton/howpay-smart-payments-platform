@@ -25,7 +25,6 @@ const Dashboard = () => {
 
       const userId = session.user.id;
 
-      // Busca nome do usuário
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('full_name')
@@ -36,7 +35,6 @@ const Dashboard = () => {
         setUserName(profile?.full_name || 'Usuário');
       }
 
-      // Verifica se há cobranças
       const { data: charges, error: chargesError } = await supabase
         .from('charges')
         .select('id')
@@ -65,9 +63,8 @@ const Dashboard = () => {
           <p className="text-gray-600">Visão geral dos seus pagamentos</p>
         </div>
         <Button
-          className="bg-howpay-gradient hover:bg-howpay-gradient-reverse text-white shadow-lg"
+          className="bg-yellow-500 hover:bg-yellow-600 text-white"
           onClick={() => navigate('/charges?new=true')}
-
         >
           + Nova Cobrança
         </Button>
